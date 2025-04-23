@@ -1,4 +1,4 @@
-import streamlit as st
+from common import st
 from algoritmo_genetico import algoritmo_genetico
 from carregar_dados import carregar_dados
 

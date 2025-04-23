@@ -1,4 +1,4 @@
-import pandas as pd
+from common import pd
 from utils import normalizar_colunas
 
 def carregar_dados(estoque_file, capacidade_file, demanda_file, custos_file):

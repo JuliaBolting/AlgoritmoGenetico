@@ -1,6 +1,4 @@
-import numpy as np
-import random
-import pandas as pd
+from common import np, random, pd
 
 TAMANHO_POPULACAO = 50
 NUM_GERACOES = 100

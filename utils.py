@@ -1,5 +1,3 @@
-import pandas as pd
-
 def normalizar_colunas(*dataframes):
     """
     Remove espaços dos nomes das colunas dos DataFrames.
