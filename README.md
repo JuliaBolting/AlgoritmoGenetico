@@ -8,5 +8,5 @@ Uma rede de supermercados possui um centro de distribuição (CD) onde são rece
 - A demanda semanal de unidades de cada produto, em cada uma das lojas, está especificada em demanda.csv.
 - Em cada viagem, um caminhão pode levar 1000 unidades independente do tipo do produto transportado.
 - Os produtos são alocados em caixas com 20 unidades cada e não podem ser abertas no CD, ou seja, a quantidade de unidades transportada deve ser sempre múltiplo de 20.
-- 
+
 O Algoritmo Genético deve realizar a programação das viagens a serem realizadas na semana para distribuir os produtos entre as lojas, de forma a minimizar custos logísticos, evitar rupturas de estoque (falta de produtos nas lojas) e excesso de mercadorias (para não gerar desperdício ou necessidade de promoções para liquidação).
