@@ -7,7 +7,6 @@ def carregar_dados(estoque_file, capacidade_file, demanda_file, custos_file):
     df_demanda = pd.read_csv(demanda_file)
     df_custos = pd.read_csv(custos_file)
 
-    # Normaliza colunas
     normalizar_colunas(df_estoque, df_capacidade_raw, df_demanda, df_custos)
 
     lojas = df_capacidade_raw['Loja']

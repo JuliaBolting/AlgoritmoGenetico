@@ -41,15 +41,15 @@ def selecao(populacao, aptidoes):
 def crossover(pai1, pai2):
     return (pai1 + pai2) // 2
 
-def mutacao(individuo):
-    if random.random() < TAXA_MUTACAO:
+def mutacao(individuo, taxa_mutacao):
+    if random.random() < taxa_mutacao:
         i = random.randint(0, individuo.shape[0]-1)
         j = random.randint(0, individuo.shape[1]-1)
         individuo[i, j] += random.choice([-20, 20])
         individuo[i, j] = max(0, individuo[i, j])
     return individuo
 
-def algoritmo_genetico(df_estoque, df_capacidade, df_demanda, df_custos):
+def algoritmo_genetico(df_estoque, df_capacidade, df_demanda, df_custos, tamanho_populacao=50, num_geracoes=100, taxa_mutacao=0.1):
     n_produtos = df_estoque.shape[0]
     n_lojas = df_capacidade.shape[1]
 
@@ -58,16 +58,16 @@ def algoritmo_genetico(df_estoque, df_capacidade, df_demanda, df_custos):
     demanda = df_demanda
     custo_caminhao = df_custos['CustoPorCaminhao'].to_numpy()
 
-    populacao = inicializar_populacao(n_produtos, n_lojas)
+    populacao = [np.random.randint(0, 50, size=(n_produtos, n_lojas)) * 20 for _ in range(tamanho_populacao)]
 
-    for _ in range(NUM_GERACOES):
+    for _ in range(num_geracoes):
         aptidoes = [calcular_aptidao(ind, estoque_cd, capacidade_lojas, demanda, custo_caminhao) for ind in populacao]
         nova_populacao = []
-        for _ in range(TAMANHO_POPULACAO):
+        for _ in range(tamanho_populacao):
             pai1 = selecao(populacao, aptidoes)
             pai2 = selecao(populacao, aptidoes)
             filho = crossover(pai1, pai2)
-            filho = mutacao(filho)
+            filho = mutacao(filho, taxa_mutacao)
             nova_populacao.append(filho)
         populacao = nova_populacao
 
