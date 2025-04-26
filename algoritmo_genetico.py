@@ -1,10 +1,5 @@
 from common import np, random, pd
-
-TAMANHO_POPULACAO = 50
-NUM_GERACOES = 100
-TAXA_MUTACAO = 0.1
-CAPACIDADE_CAMINHAO = 1000
-CAIXA_UNIDADES = 20
+from utils import TAMANHO_POPULACAO, CAPACIDADE_CAMINHAO, CAIXA_UNIDADES
 
 def inicializar_populacao(n_produtos, n_lojas):
     return [np.random.randint(0, 50, size=(n_produtos, n_lojas)) * CAIXA_UNIDADES for _ in range(TAMANHO_POPULACAO)]

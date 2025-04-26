@@ -1,6 +1,6 @@
 from algoritmo_genetico import algoritmo_genetico
 from carregar_dados import carregar_dados
-from common import pd, st, px
+from common import st, px
 
 st.set_page_config(page_title="Distribuição Logística", layout="wide")
 st.title("📦 Otimização de Distribuição de Produtos")
@@ -34,7 +34,6 @@ df_estoque, df_capacidade, df_demanda, df_custos = carregar_dados(
     custos if custos else DEFAULT_PATHS["custos"]
 )
 
-
 if st.button("🚛 Executar Algoritmo Genético"):
     resultado, custo_total = algoritmo_genetico(
         df_estoque, df_capacidade, df_demanda, df_custos,
@@ -51,9 +50,9 @@ Cada linha representa um produto e cada coluna indica a quantidade enviada para 
 O objetivo é atender a demanda das lojas respeitando as capacidades de estoque, minimizando custos logísticos.
 """)
 
-
     st.metric("💰 Custo Total", f"R$ {custo_total:,.2f}")
-
+    st.write("")
+    
     st.subheader("📊 Total de Produtos Enviados por Loja")
     total_envios_por_loja = resultado.iloc[:, 1:].sum()
     fig = px.bar(total_envios_por_loja, labels={'index': 'Loja', 'value': 'Total de Unidades'}, title="Total de Unidades por Loja")
@@ -63,7 +62,7 @@ Este gráfico ilustra visualmente a quantidade de produtos distribuída para cad
 Ele ajuda a identificar rapidamente se alguma loja está recebendo mais ou menos produtos em comparação às outras.
 """)
 
-
+    st.write("")
     csv = resultado.to_csv(index=False).encode('utf-8')
     st.download_button(
         label="📥 Baixar Resultado como CSV",
