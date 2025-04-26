@@ -10,3 +10,6 @@ Uma rede de supermercados possui um centro de distribuição (CD) onde são rece
 - Os produtos são alocados em caixas com 20 unidades cada e não podem ser abertas no CD, ou seja, a quantidade de unidades transportada deve ser sempre múltiplo de 20.
 
 O Algoritmo Genético deve realizar a programação das viagens a serem realizadas na semana para distribuir os produtos entre as lojas, de forma a minimizar custos logísticos, evitar rupturas de estoque (falta de produtos nas lojas) e excesso de mercadorias (para não gerar desperdício ou necessidade de promoções para liquidação).
+
+Para rodar o projeto, digite no terminal:
+streamlit run app.py
