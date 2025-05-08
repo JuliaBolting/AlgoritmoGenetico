@@ -1,12 +1,13 @@
 from algoritmo_genetico import algoritmo_genetico
 from carregar_dados import carregar_dados
-from common import st, px
+from common import st, px, pd
+import io
 
 st.set_page_config(page_title="Distribuição Logística", layout="wide")
-st.title("📦 Otimização de Distribuição de Produtos")
+st.title("\U0001F4E6 Otimização de Distribuição de Produtos")
 
 with st.sidebar:
-    st.header("📂 Upload dos Arquivos (opcional)")
+    st.header("\U0001F4C2 Upload dos Arquivos (opcional)")
     estoque_cd = st.file_uploader("Estoque CD", type="csv")
     capacidade_lojas = st.file_uploader("Capacidade das Lojas", type="csv")
     demanda = st.file_uploader("Demanda Semanal", type="csv")
@@ -14,11 +15,11 @@ with st.sidebar:
 
     st.header("⚙️ Parâmetros do Algoritmo Genético")
     tamanho_populacao = st.slider("Tamanho da População", 10, 200, 50, step=10)
-    st.caption("**TAMANHO_POPULACAO**: número de possíveis soluções avaliadas a cada geração (quanto maior, mais variações testadas).")
+    st.caption("**Tamanho da População**: número de possíveis soluções avaliadas a cada geração (quanto maior, mais variações testadas).")
     num_geracoes = st.slider("Número de Gerações", 10, 500, 100, step=10)
-    st.caption("**NUM_GERACOES**: número de ciclos de evolução (mais gerações podem melhorar o resultado, mas aumentam o tempo de processamento).")
+    st.caption("**Número de Gerações**: número de ciclos de evolução (mais gerações podem melhorar o resultado, mas aumentam o tempo de processamento).")
     taxa_mutacao = st.slider("Taxa de Mutação (%)", 0, 100, 10, step=1) / 100
-    st.caption("**TAXA_MUTACAO**: chance de mudar aleatoriamente uma solução (ajuda a evitar que o algoritmo fique preso em soluções ruins).")
+    st.caption("**Taxa de Mutação**: chance de mudar aleatoriamente uma solução (ajuda a evitar que o algoritmo fique preso em soluções ruins).")
 
 DEFAULT_PATHS = {
     "estoque_cd": "archives/estoque_cd.csv",
@@ -34,39 +35,67 @@ df_estoque, df_capacidade, df_demanda, df_custos = carregar_dados(
     custos if custos else DEFAULT_PATHS["custos"]
 )
 
-if st.button("🚛 Executar Algoritmo Genético"):
-    resultado, custo_total = algoritmo_genetico(
-        df_estoque, df_capacidade, df_demanda, df_custos,
-        tamanho_populacao=tamanho_populacao,
-        num_geracoes=num_geracoes,
-        taxa_mutacao=taxa_mutacao
-    )
+if st.button("\U0001F69B Executar Algoritmo Genético"):
+    with st.spinner("Executando algoritmo genético..."):
+        resultado, custo_total = algoritmo_genetico(
+            df_estoque, df_capacidade, df_demanda, df_custos,
+            tamanho_populacao=tamanho_populacao,
+            num_geracoes=num_geracoes,
+            taxa_mutacao=taxa_mutacao
+        )
 
-    st.subheader("📋 Resultado da Distribuição")
-    st.dataframe(resultado)
-    st.caption("""
-Esta tabela mostra como os produtos do Centro de Distribuição (CD) foram distribuídos para as lojas. 
-Cada linha representa um produto e cada coluna indica a quantidade enviada para cada loja.
-O objetivo é atender a demanda das lojas respeitando as capacidades de estoque, minimizando custos logísticos.
-""")
+    st.success("Otimização concluída!")
+    st.markdown(f"### \U0001F4B0 Custo total: R$ {custo_total:,.2f}")
 
-    st.metric("💰 Custo Total", f"R$ {custo_total:,.2f}")
-    st.write("")
-    
-    st.subheader("📊 Total de Produtos Enviados por Loja")
-    total_envios_por_loja = resultado.iloc[:, 1:].sum()
-    fig = px.bar(total_envios_por_loja, labels={'index': 'Loja', 'value': 'Total de Unidades'}, title="Total de Unidades por Loja")
+    colunas_envio = [col for col in resultado.columns if not col.startswith("Enviado_") and not col.startswith("Completo_") and col != "Produto"]
+    colunas_status = [col for col in resultado.columns if col.startswith("Enviado_") or col.startswith("Completo_")]
+
+    st.markdown("### 📦 Distribuição de Produtos")
+    st.dataframe(resultado[["Produto"] + colunas_envio], use_container_width=True)
+
+    st.markdown("### 🟢 Status de Entrega (Enviado e Completo)")
+    st.dataframe(resultado[["Produto"] + colunas_status], use_container_width=True)
+    st.markdown("""
+    - **Colunas `Enviado_<Loja>`**: Indica se algum produto **foi enviado** para essa loja (`sim` ou `não`).
+    - **Colunas `Completo_<Loja>`**: Indica se a **demanda total foi atendida** (`sim` ou `não`).
+    - Os produtos são enviados **apenas em caixas de 20 unidades**.
+    """)
+
+    st.markdown("### 🚛 Custos Logísticos por Loja")
+    dados_custo_loja = []
+    for loja in colunas_envio:
+        total_unidades = resultado[loja].sum()
+        caixas = total_unidades // 20
+        produtos_viagem = 20
+        viagens = caixas
+        custo_viagem = float(df_custos.loc[df_custos["Loja"] == loja, "CustoPorCaminhao"].values[0])
+        custo_total_loja = viagens * custo_viagem
+
+        dados_custo_loja.append({
+            "Loja": loja,
+            "Total de Unidades": total_unidades,
+            "Caixas (20 unid)": caixas,
+            "Produtos/Viagem": produtos_viagem,
+            "Nº de Viagens": viagens,
+            "Custo por Viagem (R$)": custo_viagem,
+            "Custo Total (R$)": custo_total_loja
+        })
+
+    df_detalhes_custo = pd.DataFrame(dados_custo_loja)
+    st.dataframe(df_detalhes_custo, use_container_width=True)
+
+    st.markdown("### \U0001F4B8 Custo Total por Loja")
+    fig = px.bar(df_detalhes_custo, x="Loja", y="Custo Total (R$)", text_auto=".2s")
     st.plotly_chart(fig)
-    st.caption("""
-Este gráfico ilustra visualmente a quantidade de produtos distribuída para cada loja.
-Ele ajuda a identificar rapidamente se alguma loja está recebendo mais ou menos produtos em comparação às outras.
-""")
 
-    st.write("")
-    csv = resultado.to_csv(index=False).encode('utf-8')
+    excel_buffer = io.BytesIO()
+    with pd.ExcelWriter(excel_buffer, engine='openpyxl') as writer:
+        resultado.to_excel(writer, index=False, sheet_name="Distribuicao")
+        df_detalhes_custo.to_excel(writer, index=False, sheet_name="Custos")
+
     st.download_button(
-        label="📥 Baixar Resultado como CSV",
-        data=csv,
-        file_name='resultado_distribuicao.csv',
-        mime='text/csv'
+        label="📥 Baixar Resultado como Excel",
+        data=excel_buffer.getvalue(),
+        file_name="resultado_distribuicao.xlsx",
+        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
