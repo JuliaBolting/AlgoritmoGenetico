@@ -1,7 +1,8 @@
 from algoritmo_genetico import algoritmo_genetico
 from carregar_dados import carregar_dados
-from common import st, px, pd
-import io
+from common import st, px, pd, io, mp
+
+mp.set_start_method("spawn", force=True)
 
 st.set_page_config(page_title="Distribuição Logística", layout="wide")
 st.title("\U0001F4E6 Otimização de Distribuição de Produtos")
@@ -14,12 +15,17 @@ with st.sidebar:
     custos = st.file_uploader("Custo por Caminhão", type="csv")
 
     st.header("⚙️ Parâmetros do Algoritmo Genético")
-    tamanho_populacao = st.slider("Tamanho da População", 10, 200, 50, step=10)
+    tamanho_populacao = st.slider("Tamanho da População", 10, 200, 100, step=10)
     st.caption("**Tamanho da População**: número de possíveis soluções avaliadas a cada geração (quanto maior, mais variações testadas).")
-    num_geracoes = st.slider("Número de Gerações", 10, 500, 100, step=10)
+    num_geracoes = st.slider("Número de Gerações", 10, 500, 200, step=10)
     st.caption("**Número de Gerações**: número de ciclos de evolução (mais gerações podem melhorar o resultado, mas aumentam o tempo de processamento).")
-    taxa_mutacao = st.slider("Taxa de Mutação (%)", 0, 100, 10, step=1) / 100
+    taxa_mutacao = st.slider("Taxa de Mutação (%)", 0, 100, 50, step=1) / 100
     st.caption("**Taxa de Mutação**: chance de mudar aleatoriamente uma solução (ajuda a evitar que o algoritmo fique preso em soluções ruins).")
+
+    print("Parâmetros Selecionados:")
+    print(f"Tamanho da população: {tamanho_populacao}")
+    print(f"Número de gerações: {num_geracoes}")
+    print(f"Taxa de mutação: {taxa_mutacao}")
 
 DEFAULT_PATHS = {
     "estoque_cd": "archives/estoque_cd.csv",

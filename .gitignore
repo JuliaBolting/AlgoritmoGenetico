@@ -7,6 +7,7 @@ __pycache__/
 *.py[cod]
 *$py.class
 *.pyc
+algoritmo_genetico_b.py
 
 # C extensions
 *.so
