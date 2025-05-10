@@ -8,12 +8,6 @@ st.set_page_config(page_title="Distribuição Logística", layout="wide")
 st.title("\U0001F4E6 Otimização de Distribuição de Produtos")
 
 with st.sidebar:
-    st.header("\U0001F4C2 Upload dos Arquivos (opcional)")
-    estoque_cd = st.file_uploader("Estoque CD", type="csv")
-    capacidade_lojas = st.file_uploader("Capacidade das Lojas", type="csv")
-    demanda = st.file_uploader("Demanda Semanal", type="csv")
-    custos = st.file_uploader("Custo por Caminhão", type="csv")
-
     st.header("⚙️ Parâmetros do Algoritmo Genético")
     tamanho_populacao = st.slider("Tamanho da População", 10, 200, 100, step=10)
     st.caption("**Tamanho da População**: número de possíveis soluções avaliadas a cada geração (quanto maior, mais variações testadas).")
@@ -21,6 +15,14 @@ with st.sidebar:
     st.caption("**Número de Gerações**: número de ciclos de evolução (mais gerações podem melhorar o resultado, mas aumentam o tempo de processamento).")
     taxa_mutacao = st.slider("Taxa de Mutação (%)", 0, 100, 50, step=1) / 100
     st.caption("**Taxa de Mutação**: chance de mudar aleatoriamente uma solução (ajuda a evitar que o algoritmo fique preso em soluções ruins).")
+    
+    st.header("\U0001F4C2 Upload dos Arquivos (opcional)")
+    estoque_cd = st.file_uploader("Estoque CD", type="csv")
+    capacidade_lojas = st.file_uploader("Capacidade das Lojas", type="csv")
+    demanda = st.file_uploader("Demanda Semanal", type="csv")
+    custos = st.file_uploader("Custo por Caminhão", type="csv")
+
+    
 
     print("Parâmetros Selecionados:")
     print(f"Tamanho da população: {tamanho_populacao}")
