@@ -2,7 +2,7 @@ from common import np, random, pd, cf, time, os
 from utils import TAMANHO_POPULACAO, CAPACIDADE_CAMINHAO, CAIXA_UNIDADES
 
 # =========================
-# 1. ALGORITMO GENÉTICO.
+# 1. ALGORITMO GENÉTICO
 # =========================
 
 def algoritmo_genetico(df_estoque, df_capacidade, df_demanda, df_custos, tamanho_populacao=TAMANHO_POPULACAO, num_geracoes=100, taxa_mutacao=0.1):

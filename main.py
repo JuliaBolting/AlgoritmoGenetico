@@ -1,6 +1,7 @@
 from algoritmo_genetico import algoritmo_genetico
 from carregar_dados import carregar_dados
 from common import st, px, pd, io, mp
+from math import ceil
 
 mp.set_start_method("spawn", force=True)
 
@@ -75,7 +76,7 @@ if st.button("\U0001F69B Executar Algoritmo Genético"):
         total_unidades = resultado[loja].sum()
         caixas = total_unidades // 20
         produtos_viagem = 20
-        viagens = caixas
+        viagens = ceil(caixas / 50)
         custo_viagem = float(df_custos.loc[df_custos["Loja"] == loja, "CustoPorCaminhao"].values[0])
         custo_total_loja = viagens * custo_viagem
 
