@@ -34,7 +34,7 @@ DEFAULT_PATHS = {
     "custos": "archives/custo_por_caminhao.csv"
 }
 
-df_estoque, df_capacidade, df_demanda, df_custos = carregar_dados(
+df_estoque, df_capacidade, df_demanda, df_custos, df_capacidade_raw = carregar_dados(
     estoque_cd if estoque_cd else DEFAULT_PATHS["estoque_cd"],
     capacidade_lojas if capacidade_lojas else DEFAULT_PATHS["capacidade_lojas"],
     demanda if demanda else DEFAULT_PATHS["demanda"],
@@ -96,10 +96,14 @@ if st.session_state.resultado is not None:
         custo_viagem = float(df_custos.loc[df_custos["Loja"] == loja, "CustoPorCaminhao"].values[0])
         custo_total_loja = viagens * custo_viagem
         custo_total_final = custo_total_final + custo_total_loja
+        print(df_capacidade.columns)
+        capacidade = int(df_capacidade_raw.loc[df_capacidade_raw["Loja"] == loja, "Capacidade"].values[0])
+
 
         dados_custo_loja.append({
             "Loja": loja,
             "Total de Unidades": total_unidades,
+            "Capacidade": capacidade,
             "Caixas (20 unid)": caixas,
             "Nº de Viagens": viagens,
             "Custo por Viagem (R$)": custo_viagem,

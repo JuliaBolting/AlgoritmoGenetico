@@ -93,30 +93,44 @@ def calcular_aptidao(individuo, estoque_cd, capacidade_lojas, demanda, custo_cam
     enviado = np.full(individuo.shape, "sim", dtype=object)
     individuo_final = np.zeros_like(individuo)
 
+    capacidade_total_lojas = capacidade_lojas[0]
+
     for loja in range(individuo.shape[1]):
         carga_total = 0
+        capacidade_restante = capacidade_total_lojas[loja]
+
         for prod in range(individuo.shape[0]):
             demanda_loja = demanda[prod, loja]
-            capacidade_prod = capacidade_lojas[prod, loja]
+            if demanda_loja == 0:
+                continue
 
             caixas = int(np.floor(demanda_loja / CAIXA_UNIDADES))
             sobra = demanda_loja % CAIXA_UNIDADES
             unidades_enviar = caixas * CAIXA_UNIDADES
 
-            if sobra > 0 and unidades_enviar + CAIXA_UNIDADES <= capacidade_prod:
+            # Enviar uma caixa extra se sobra > 0 e ainda houver capacidade
+            if sobra > 0 and unidades_enviar + CAIXA_UNIDADES <= demanda_loja + CAIXA_UNIDADES:
                 unidades_enviar += CAIXA_UNIDADES
 
-            if unidades_enviar > capacidade_prod:
-                unidades_enviar = capacidade_prod
+            # Verifica se ainda cabe na loja
+            if carga_total + unidades_enviar > capacidade_restante:
+                # Tenta enviar menos se a capacidade já estiver quase cheia
+                maximo_enviar = capacidade_restante - carga_total
+                maximo_enviar = (maximo_enviar // CAIXA_UNIDADES) * CAIXA_UNIDADES
+                unidades_enviar = maximo_enviar
+
+            if unidades_enviar <= 0:
                 enviado[prod, loja] = "não"
                 completo[prod, loja] = "não"
                 penalidade += 50
-            elif unidades_enviar < demanda_loja:
-                completo[prod, loja] = "não"
-                penalidade += 30 * (demanda_loja - unidades_enviar)
+                continue
 
             individuo_final[prod, loja] = unidades_enviar
             carga_total += unidades_enviar
+
+            if unidades_enviar < demanda_loja:
+                completo[prod, loja] = "não"
+                penalidade += 30 * (demanda_loja - unidades_enviar)
 
         viagens = np.ceil(carga_total / CAPACIDADE_CAMINHAO)
         custo_total += viagens * custo_caminhao[loja]

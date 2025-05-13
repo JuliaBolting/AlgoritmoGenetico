@@ -13,4 +13,4 @@ def carregar_dados(estoque_file, capacidade_file, demanda_file, custos_file):
     capacidades = df_capacidade_raw['Capacidade']
     df_capacidade = pd.DataFrame([capacidades.values] * df_demanda.shape[0], columns=lojas)
 
-    return df_estoque, df_capacidade, df_demanda.iloc[:, 1:], df_custos
+    return df_estoque, df_capacidade, df_demanda.iloc[:, 1:], df_custos, df_capacidade_raw
