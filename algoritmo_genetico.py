@@ -1,11 +1,11 @@
 from common import np, random, pd, cf, time, os
-from utils import TAMANHO_POPULACAO, CAPACIDADE_CAMINHAO, CAIXA_UNIDADES
+from utils import CAPACIDADE_CAMINHAO, CAIXA_UNIDADES
 
 # =========================
 # 1. ALGORITMO GENÉTICO
 # =========================
 
-def algoritmo_genetico(df_estoque, df_capacidade, df_demanda, df_custos, tamanho_populacao=TAMANHO_POPULACAO, num_geracoes=100, taxa_mutacao=0.1):
+def algoritmo_genetico(df_estoque, df_capacidade, df_demanda, df_custos, tamanho_populacao, num_geracoes, taxa_mutacao):
     n_produtos = df_estoque.shape[0]
     n_lojas = df_capacidade.shape[1]
 
@@ -16,7 +16,8 @@ def algoritmo_genetico(df_estoque, df_capacidade, df_demanda, df_custos, tamanho
 
     populacao = inicializar_populacao(tamanho_populacao, n_produtos, n_lojas)
 
-    _, melhor_executor = benchmark_executor(populacao[:100], estoque_cd, capacidade_lojas, demanda, custo_caminhao)
+    # Escolhe o melhor executor para o paralelismo
+    _, melhor_executor = benchmark_executor(populacao[:10], estoque_cd, capacidade_lojas, demanda, custo_caminhao)
 
     for i in range(num_geracoes):
         print(f"[GERAÇÃO {i+1}] Início")
@@ -151,9 +152,6 @@ def benchmark_executor(populacao, estoque_cd, capacidade_lojas, demanda, custo_c
 
     resultados_process, tempo_process = executar(cf.ProcessPoolExecutor)
     print(f"[INFO] ProcessPoolExecutor levou {tempo_process:.2f}s")
-    
-    melhor_executor = cf.ThreadPoolExecutor if tempo_thread <= tempo_process else cf.ProcessPoolExecutor
-    print(f"[INFO] Usando {'ThreadPoolExecutor' if melhor_executor is cf.ThreadPoolExecutor else 'ProcessPoolExecutor'}")
 
     if tempo_thread <= tempo_process:
         print("[INFO] Usando ThreadPoolExecutor\n")
