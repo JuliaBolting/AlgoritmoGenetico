@@ -2,11 +2,13 @@ from algoritmo_genetico import algoritmo_genetico
 from carregar_dados import carregar_dados
 from common import st, px, pd, io, mp, ceil
 
+# Evita bugs no paralelismo.
 mp.set_start_method("spawn", force=True)
 
 st.set_page_config(page_title="Distribuição Logística", layout="wide")
 st.title("\U0001F4E6 Otimização de Distribuição de Produtos")
 
+# Sidebar
 with st.sidebar:
     st.header("⚙️ Parâmetros do Algoritmo Genético")
     tamanho_populacao = st.slider("Tamanho da População", 10, 200, 100, step=10)
@@ -16,16 +18,13 @@ with st.sidebar:
     taxa_mutacao = st.slider("Taxa de Mutação (%)", 0, 100, 50, step=1) / 100
     st.caption("**Taxa de Mutação**: chance de mudar aleatoriamente uma solução (ajuda a evitar que o algoritmo fique preso em soluções ruins).")
     
+    st.markdown("---")
+
     st.header("\U0001F4C2 Upload dos Arquivos (opcional)")
     estoque_cd = st.file_uploader("Estoque CD", type="csv")
     capacidade_lojas = st.file_uploader("Capacidade das Lojas", type="csv")
     demanda = st.file_uploader("Demanda Semanal", type="csv")
     custos = st.file_uploader("Custo por Caminhão", type="csv")
-
-    print("Parâmetros Selecionados:")
-    print(f"Tamanho da população: {tamanho_populacao}")
-    print(f"Número de gerações: {num_geracoes}")
-    print(f"Taxa de mutação: {taxa_mutacao}")
 
 DEFAULT_PATHS = {
     "estoque_cd": "archives/estoque_cd.csv",
@@ -41,6 +40,7 @@ df_estoque, df_capacidade, df_demanda, df_custos, df_capacidade_raw = carregar_d
     custos if custos else DEFAULT_PATHS["custos"]
 )
 
+# Memória temporária para persistência dos dados na hora de baixar o excel.
 if "resultado" not in st.session_state:
     st.session_state.resultado = None
     st.session_state.custo_total = 0
@@ -58,15 +58,19 @@ if st.button("\U0001F69B Executar Algoritmo Genético"):
     st.session_state.resultado = resultado
     st.session_state.custo_total = custo_total
     
+# Faz a verificação se a persistência está vazia (erro).
 if st.session_state.resultado is not None:
     resultado = st.session_state.resultado
     custo_total = st.session_state.custo_total
 
     st.success("Otimização concluída!")
 
+    # Cria uma lista sem os nomes: "Enviado_", "Completo_", "Produtos".
     colunas_envio = [col for col in resultado.columns if not col.startswith("Enviado_") and not col.startswith("Completo_") and col != "Produto"]
+    # Cria uma lista com colunas que começam com "Enviado_" ou "Completo_".
     colunas_status = [col for col in resultado.columns if col.startswith("Enviado_") or col.startswith("Completo_")]
 
+    # Tabela 1
     st.markdown("---")
     st.markdown("### 📦 Distribuição de Produtos")
     st.dataframe(resultado[["Produto"] + colunas_envio], use_container_width=True)
@@ -76,6 +80,7 @@ if st.session_state.resultado is not None:
       Quando a demanda não é múltipla de 20, o valor pode ser arredondado para cima, desde que **não ultrapasse a capacidade da loja**.
     """)
 
+    # Tabela 2
     st.markdown("---")
     st.markdown("### 🟢 Status de Entrega (Enviado e Completo)")
     st.dataframe(resultado[["Produto"] + colunas_status], use_container_width=True)
@@ -85,6 +90,7 @@ if st.session_state.resultado is not None:
     - Os produtos são enviados **apenas em caixas de 20 unidades**.
     """)
 
+    # Tabela 3
     st.markdown("---")
     st.markdown("### 🚛 Custos Logísticos por Loja")
     custo_total_final = 0
@@ -96,7 +102,6 @@ if st.session_state.resultado is not None:
         custo_viagem = float(df_custos.loc[df_custos["Loja"] == loja, "CustoPorCaminhao"].values[0])
         custo_total_loja = viagens * custo_viagem
         custo_total_final = custo_total_final + custo_total_loja
-        print(df_capacidade.columns)
         capacidade = int(df_capacidade_raw.loc[df_capacidade_raw["Loja"] == loja, "Capacidade"].values[0])
 
 
@@ -118,6 +123,7 @@ if st.session_state.resultado is not None:
       Esses dados permitem avaliar **quais lojas geram maior gasto logístico** e **onde há oportunidades de otimização**.
     """)
 
+    # Gráfico de custo por lojas.
     st.markdown("---")
     st.markdown("### \U0001F4B8 Custo Total por Loja")
     fig = px.bar(df_detalhes_custo, x="Loja", y="Custo Total (R$)", text_auto=".2s")
@@ -130,9 +136,9 @@ if st.session_state.resultado is not None:
         df_detalhes_custo.to_excel(writer, index=False, sheet_name="Custos")
     excel_buffer.seek(0)
         
-    
     st.success(f"### \U0001F4B0 Custo total: R$ {custo_total_final:,.2f}")
 
+    # Adicionado colunas com os botões para ficar um ao lado do outro.
     col1, col2 = st.columns(2)
 
     with col1:
