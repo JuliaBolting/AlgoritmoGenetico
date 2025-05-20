@@ -32,10 +32,12 @@ def algoritmo_genetico(df_estoque, df_capacidade, df_demanda, df_custos, tamanho
         fim = time.time()
         print(f"[GERAÇÃO {i+1}] Tempo: {fim - inicio:.2f}s")
         
+        num_filhos = calc_num_filhos(tamanho_populacao, taxa_mutacao, num_geracoes)
+        
         # Percorre todos os elementos da lista avaliacoes e extrai apenas o valor de índice 0.
         aptidoes = [av[0] for av in avaliacoes]
         nova_populacao = []
-        for _ in range(tamanho_populacao):
+        while len(nova_populacao) < tamanho_populacao:
             pai1 = selecao(populacao, aptidoes)
             pai2 = selecao(populacao, aptidoes)
             
@@ -43,11 +45,16 @@ def algoritmo_genetico(df_estoque, df_capacidade, df_demanda, df_custos, tamanho
             while np.array_equal(pai2, pai1):
                 pai2 = selecao(populacao, aptidoes)
                 
-            filho = crossover(pai1, pai2)
-            filho = mutacao(filho, taxa_mutacao)
+            # Itera até a quantidades de filhos calculada
+            for _ in range(num_filhos):
+                filho = crossover(pai1, pai2)
+                filho = mutacao(filho, taxa_mutacao)
             
-            #  Criação da população da próxima geração.
-            nova_populacao.append(filho)
+                #  Criação da população da próxima geração.
+                nova_populacao.append(filho)
+                if len(nova_populacao) >= tamanho_populacao:
+                    break
+                
         populacao = nova_populacao
         print(f"[GERAÇÃO {i+1}] Fim\n")
 
@@ -257,3 +264,21 @@ def calc_taxa_uniforme(diversidade):
     tu = 0.7 - (0.4 * diversidade)
     return max(0.1, min(0.9, tu))
 
+# Determina a quantidade de filhos para gerar de acordo com as regras de diversidade
+def calc_num_filhos(populacao_tamanho, taxa_mutacao, num_geracoes):
+    if populacao_tamanho < 30:
+        if taxa_mutacao < 10:
+            return 4
+        else:
+            return 3
+    elif populacao_tamanho < 100:
+        if taxa_mutacao < 10:
+            return 3
+        else:
+            return 2
+    else:
+        if taxa_mutacao > 50 or num_geracoes > 300:
+            # Controle de crescimento e mutação forte
+            return 1  
+        else:
+            return 2
