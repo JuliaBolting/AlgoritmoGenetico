@@ -38,6 +38,11 @@ def algoritmo_genetico(df_estoque, df_capacidade, df_demanda, df_custos, tamanho
         for _ in range(tamanho_populacao):
             pai1 = selecao(populacao, aptidoes)
             pai2 = selecao(populacao, aptidoes)
+            
+            # Faz um while para que os pais não sejam os mesmos, evitando filhos redundantes no crossover
+            while np.array_equal(pai2, pai1):
+                pai2 = selecao(populacao, aptidoes)
+                
             filho = crossover(pai1, pai2)
             filho = mutacao(filho, taxa_mutacao)
             
@@ -76,9 +81,26 @@ def selecao(populacao, aptidoes):
     # Retorna o indivíduo com a menor aptidão entre os selecionados.
     return min(selecionados, key=lambda x: x[1])[0]
 
-# Combinação das características de ambos os pais (recombinação genética).
+# Crossover híbrido, decide entre uniforme e por linha
 def crossover(pai1, pai2):
-    return (pai1 + pai2) // 2
+    filho = np.zeros_like(pai1)
+    
+    # Cálculo da diversidade entre os pais
+    diversidade = hamming(pai1, pai2)
+
+    # Cálculo da taxa de variação para definir entre uniforme ou por linha
+    taxa_uniforme = calc_taxa_uniforme(diversidade)
+    
+    for i in range(pai1.shape[0]):  # produto
+        if random.random() < taxa_uniforme:
+            # Crossover uniforme (gene a gene)
+            for j in range(pai1.shape[1]):
+                filho[i, j] = pai1[i, j] if random.random() < 0.5 else pai2[i, j]
+        else:
+            # Crossover por linha
+            filho[i] = pai1[i] if random.random() < 0.5 else pai2[i]
+
+    return filho
 
 def mutacao(individuo, taxa_mutacao):
     if random.random() < taxa_mutacao:
@@ -219,3 +241,19 @@ def benchmark_executor(populacao, estoque_cd, capacidade_lojas, demanda, custo_c
     else:
         print("[INFO] Usando ProcessPoolExecutor\n")
         return resultados_process, cf.ProcessPoolExecutor
+    
+# Verifica a diversidade genética dos pais
+def hamming(pai1, pai2):
+    # Conta quantos elementos são diferentes
+    diferentes = np.sum(pai1 != pai2)
+    total = pai1.size
+    # Distância de Hamming de 0 a 1
+    return diferentes / total
+
+# Mapeia diversidade [0,1] para uma taxa uniforme [0.7, 0.3]
+# Quanto mais parecidos os pais, maior a taxa de crossover uniforme
+# Evitar valores extremos (<0 ou >1) com max e min
+def calc_taxa_uniforme(diversidade):
+    tu = 0.7 - (0.4 * diversidade)
+    return max(0.1, min(0.9, tu))
+
